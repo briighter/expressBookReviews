@@ -6,70 +6,99 @@ const public_users = express.Router();
 
 public_users.post("/register", (req, res) => {
   //Write your code here
-  return res.status(300).json({ message: "Yet to be implemented" });
+  const username = req.body.username;
+  const password = req.body.password;
+  // Check if both username and password are provided
+  if (username && password) {
+    // Check if the user does not already exist
+    if (!isValid(username)) {
+      // Add the new user to the users array
+      users.push({ username: username, password: password });
+      return res
+        .status(200)
+        .json({ message: "User successfully registered. Now you can login" });
+    } else {
+      return res.status(404).json({ message: "User already exists!" });
+    }
+  }
+  // Return error if username or password is missing
+  return res.status(404).json({ message: "Unable to register user." });
 });
 
 // Get the book list available in the shop
 public_users.get("/", function (req, res) {
-  return res.status(200).send(books);
+  new Promise((resolve, reject) => {
+    resolve(books);
+  }).then((b) => {
+    return res.status(200).send(b);
+  });
 });
 
 // Get book details based on ISBN
 public_users.get("/isbn/:isbn", function (req, res) {
   //Write your code here
   const isbn = req.params.isbn;
-  if (!isbn) {
-    return res.status(200).json({ message: "Invalid ISBN" });
-  }
-  if (!books[isbn]) {
-    return res.status(200).json({ message: "Book not found" });
-  }
-
-  return res.status(200).send(books[isbn]);
+  new Promise((resolve, reject) => {
+    if (!isbn) {
+      reject("Invalid ISBN");
+    }
+    if (!books[isbn]) {
+      reject("Book not found");
+    }
+    resolve(books[isbn]);
+  }).then((response) => {
+    return res.status(200).send(response);
+  });
 });
 
 // Get book details based on author
 public_users.get("/author/:author", function (req, res) {
   //Write your code here
   authorsBooks = [];
-
-  if (!req.params.author) {
-    return res.status(200).json({ message: "Invalid author" });
-  }
-
-  for (let book in books) {
-    if (books[book].author === req.params.author) {
-      authorsBooks.push(books[book]);
+  new Promise((resolve, reject) => {
+    if (!req.params.author) {
+      reject("Invalid author");
     }
-  }
+  
+    for (let book in books) {
+      if (books[book].author === req.params.author) {
+        authorsBooks.push(books[book]);
+      }
+    }
+  
+    if (authorsBooks.length === 0) {
+      reject("Author not found");
+    }
 
-  if (authorsBooks.length === 0) {
-    return res.status(200).json({ message: "Author not found" });
-  }
-
-  return res.status(200).json(authorsBooks);
+    resolve(authorsBooks);
+  }).then((response) => {
+    return res.status(200).send(response);
+  });
 });
 
 // Get all books based on title
 public_users.get("/title/:title", function (req, res) {
   //Write your code here
   titledBooks = [];
-
-  if (!req.params.title) {
-    return res.status(200).json({ message: "Invalid title" });
-  }
-
-  for (let book in books) {
-    if (books[book].title === req.params.title) {
-      titledBooks.push(books[book]);
+  new Promise((resolve, reject) => {
+    if (!req.params.title) {
+      reject("Invalid title");
     }
-  }
-
-  if (titledBooks.length === 0) {
-    return res.status(200).json({ message: "Title not found" });
-  }
-
-  return res.status(200).json(titledBooks);
+  
+    for (let book in books) {
+      if (books[book].title === req.params.title) {
+        titledBooks.push(books[book]);
+      }
+    }
+  
+    if (titledBooks.length === 0) {
+      reject("Title not found");
+    }
+    
+    resolve(titledBooks);
+  }).then((response) => {
+    return res.status(200).send(response);
+  });
 });
 
 //  Get book review
